@@ -1,0 +1,26 @@
+#!/bin/busybox sh
+
+run_script() {
+    local script="$1"
+    /bin/busybox sh "$script" &
+}
+
+main() {
+    local script_dir="${1:-/usr/app/start_script}"
+
+    if [ ! -d "$script_dir" ]; then
+        exit 1
+    fi
+
+    scripts=$(/bin/busybox find "$script_dir" -maxdepth 1 -type f \( -name "*.sh" -o -executable \))
+
+    if [ -z "$scripts" ]; then
+        exit 0
+    fi
+
+    for script in $scripts; do
+        run_script "$script"
+    done
+}
+
+main "$1"

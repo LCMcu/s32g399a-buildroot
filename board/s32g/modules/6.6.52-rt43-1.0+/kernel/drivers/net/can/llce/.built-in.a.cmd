@@ -1,0 +1,1 @@
+savedcmd_drivers/net/can/llce/built-in.a := rm -f drivers/net/can/llce/built-in.a;  printf "drivers/net/can/llce/%s " llce_can_common.o llce_can_core.o llce_can_core_debugfs.o | xargs /home/lc/work/tools/arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-ar cDPrST drivers/net/can/llce/built-in.a

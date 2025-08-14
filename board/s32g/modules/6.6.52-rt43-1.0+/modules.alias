@@ -1,0 +1,7 @@
+# Aliases extracted from modules themselves.
+alias of:N*T*Cnxp,sja1110-ucC* sja1110
+alias of:N*T*Cnxp,sja1110-uc sja1110
+alias of:N*T*Cnxp,sja1110-switchC* sja1110
+alias of:N*T*Cnxp,sja1110-switch sja1110
+alias of:N*T*Cnxp,s32g-pfeC* pfeng
+alias of:N*T*Cnxp,s32g-pfe pfeng
