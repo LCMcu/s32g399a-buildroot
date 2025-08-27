@@ -8,7 +8,7 @@ sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/image_v
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/modules /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 
-# 创建 /etc/passwd 片段
+# 创建 /etc/passwd
 if grep -q "sshd:x:74:" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/group_sshd"; then
     echo "ssh 配置存在"
 else
@@ -19,6 +19,8 @@ else
     echo "sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/passwd
     echo "PermitRootLogin yes" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/sshd_config
 fi
+#
+# echo "GSSAPIAuthentication no" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/sshd_config
 mkdir -p /var/empty/
 
 #放置测试工具
