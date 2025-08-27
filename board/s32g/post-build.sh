@@ -1,5 +1,7 @@
 #!/bin/bash
 echo "s32g***************************************s32g********************************************s32g"
+
+# 放置驱动
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/modules /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 
@@ -16,4 +18,11 @@ else
 fi
 mkdir -p /var/empty/
 
+#放置测试工具
 
+
+sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/bin/*  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/bin/
+
+
+
+#放置应用app
