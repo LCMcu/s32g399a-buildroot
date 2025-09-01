@@ -4,6 +4,14 @@ echo "s32g***************************************s32g***************************
 #放置镜像版本号
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/image_version   /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ 
 
+#配置终端显示主机名
+if grep -q "PS1=" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile"; then
+    echo "profile 配置存在"
+else
+    echo "profile 配置不存在，追加配置"
+    echo "export PS1='\u@\h:\w\$ '" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile
+fi
+
 # 放置驱动
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/modules /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/

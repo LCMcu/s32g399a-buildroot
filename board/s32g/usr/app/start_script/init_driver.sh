@@ -33,10 +33,15 @@ cat /sys/class/gpio/PJ_10/value
 
 #######################################CAN配置###################################################
 ip link set can0 type can bitrate 500000 loopback off
+ifconfig can0 up
 ip link set can1 type can bitrate 500000 loopback off
+ifconfig can1 up
 ip link set can2 type can bitrate 500000 loopback off
+ifconfig can2 up
 ip link set can3 type can bitrate 500000 loopback off
+ifconfig can3 up
 ip link set llcecan0 type can bitrate 500000 loopback off
+ifconfig llcecan0 up
 
 #######################################AB机判定#################################################
 #临时使用JTAG CLK引脚作为AB判断引脚，A机拉高，B机拉低。后续使用PCIE 读取AB 标识替代。
@@ -88,8 +93,13 @@ esac
 #########################A机配置#########################
 if [ "$MACHINE" = "$MACHINE_A" ]; then
     echo "Executing Operation A for $MACHINE"
-    ifconfig eth0 192.168.0.101 up
 
+    ################修改hostname##################
+    hostname zhdz-m
+    sleep 1
+
+    ################配置网络##################
+    ifconfig eth0 192.168.0.101 up
     ifconfig pfe0 192.168.10.101 down
     ifconfig pfe0 hw ether 00:04:9F:BE:EF:A0
     ifconfig pfe0 192.168.10.101 up
@@ -106,6 +116,11 @@ fi
 #########################B机配置#########################
 if [ "$MACHINE" = "$MACHINE_B" ]; then
     echo "Executing Operation B for $MACHINE"
+    ################修改hostname##################
+    hostname zhdz-s
+    sleep 1
+
+    ################配置网络##################
     ifconfig eth0 192.168.0.102 up
     ifconfig pfe0 192.168.10.102 down
     ifconfig pfe0 hw ether 00:04:9F:BE:EF:B0
