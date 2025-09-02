@@ -5,11 +5,11 @@ echo "s32g***************************************s32g***************************
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/image_version   /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ 
 
 #配置终端显示主机名
-if grep -q "PS1=" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile"; then
+if grep -q "\u@\h:\w" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile"; then
     echo "profile 配置存在"
 else
     echo "profile 配置不存在，追加配置"
-    echo "export PS1='\u@\h:\w\$ '" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile
+    echo "export PS1='\u@\h:\w# '" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile
 fi
 
 # 放置驱动
@@ -31,11 +31,15 @@ fi
 # echo "GSSAPIAuthentication no" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/sshd_config
 mkdir -p /var/empty/
 
+
+
+
+
 #放置测试工具
-
-
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/bin/*  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/bin/
 
 
 
 #放置应用app
+sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/init.d/S99startupapp  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/init.d/
+sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
