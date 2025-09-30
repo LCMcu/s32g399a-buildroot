@@ -12,9 +12,13 @@ else
     echo "export PS1='\u@\h:\w# '" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile
 fi
 
-#3.放置fstab，创建emmc挂载点
-sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_master
+#3.创建emmc、flash挂载点, 放置fstab
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_primary
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_backup
+
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_work
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_image_info
+
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/fstab   /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/fstab 
 
 #4.创建 /etc/passwd
