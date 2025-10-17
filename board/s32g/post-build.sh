@@ -13,19 +13,22 @@ else
 fi
 
 #3.创建emmc、flash挂载点, 修改mdev配置规则，放置fstab
-if grep -q "mtd" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf"; then
-    echo "mtd 配置存在"
-else
-    echo "mtd 配置不存在，追加配置"
-    echo "mtd[0-10]*      0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf
-    echo "mtdblock[0-10]* 0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf 
-fi
+# if grep -q "mtd" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf"; then
+#     echo "mtd 配置存在"
+# else
+#     echo "mtd 配置不存在，追加配置"
+#     echo "mtd[0-10]*      0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf
+#     echo "mtdblock[0-10]* 0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf 
+# fi
 
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_primary
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_backup
 
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_work
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_image_info
+
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/fram1
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/fram2
 
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/fstab   /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/fstab 
 
