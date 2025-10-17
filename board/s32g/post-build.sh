@@ -12,7 +12,15 @@ else
     echo "export PS1='\u@\h:\w# '" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/profile
 fi
 
-#3.创建emmc、flash挂载点, 放置fstab
+#3.创建emmc、flash挂载点, 修改mdev配置规则，放置fstab
+if grep -q "mtd" "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf"; then
+    echo "mtd 配置存在"
+else
+    echo "mtd 配置不存在，追加配置"
+    echo "mtd[0-10]*      0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf
+    echo "mtdblock[0-10]* 0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf 
+fi
+
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_primary
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_backup
 
@@ -42,7 +50,6 @@ sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /
 
 #6.放置测试工具
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/bin/*  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/bin/
-
 
 #7.放置应用app
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/init.d/S99startupapp  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/init.d/

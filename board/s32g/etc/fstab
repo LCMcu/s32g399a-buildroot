@@ -8,5 +8,5 @@ tmpfs		/run		tmpfs	mode=0755,nosuid,nodev	0	0
 sysfs		/sys		sysfs	defaults	0	0
 /dev/mmcblk0p1  /mnt/emmc_primary       ext4    defaults,noatime,nodiratime    0    2
 /dev/mmcblk0p2  /mnt/emmc_backup       ext4    defaults,noatime,nodiratime    0    2
-/dev/mtd8  /mnt/norflash_work  jffs2  ro,defaults  0  0
-/dev/mtd10  /mnt/norflash_image_info  jffs2  ro,defaults  0  0
+/dev/mtdblock8  /mnt/norflash_work  jffs2  ro,defaults  0  0
+/dev/mtdblock10  /mnt/norflash_image_info  jffs2  ro,defaults  0  0
