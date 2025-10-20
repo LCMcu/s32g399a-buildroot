@@ -1,94 +1,60 @@
-#!/bin/bash
+#!/bin/sh
 
 # 脚本名称：auto_mount_mtd_loop.sh
-# 描述：持续循环检查 /proc/mtd 和 /etc/fstab，根据配置文件动态挂载指定 name 的 MTD 分区到指定路径。
-#       支持检测新分区并自动挂载，兼容 fstab 配置。
-# 使用方法：./auto_mount_mtd_loop.sh [-u] <config_file>
-#   -u: 卸载所有已挂载的分区并退出
-#   <config_file>: 配置文件路径，包含 mtd_name 和 mount_point 映射
-# 配置文件格式：
-#   [MOUNT_RULES]
-#   mtd_name1=mount_point1
-#   mtd_name2=mount_point2
-# 示例：
-#   [MOUNT_RULES]
-#   Image-Info=/mnt/image_info
-#   fram1_108qn=/mnt/fram1
+# 描述：持续循环检查 /proc/mtd 和 eMMC 分区，直接挂载预定义的 MTD 和 eMMC 分区到指定路径。
+# 使用方法：./auto_mount_mtd_loop.sh [-u]
+#   -u: 卸载所有预定义的挂载点并退出
+# 预定义规则：
+#   MTD 分区: Work=/mnt/norflash_work, Image-Info=/mnt/norflash_image_info
+#   MTD 分区: fram1_108qn=/mnt/fram1, fram2_108qn=/mnt/fram2
+#   eMMC 分区: mmcblk0p1=/mnt/emmc1, mmcblk0p2=/mnt/emmc2
 # 依赖：mount、umount 命令，需 root 权限
-# 文件系统类型：默认 jffs2，可通过配置文件指定
-# 循环间隔：默认 10 秒，可修改 INTERVAL 变量
+# 文件系统类型：MTD 默认 jffs2，eMMC 默认 ext4
+# 循环间隔：默认 5 秒
 
 # 默认循环间隔（秒）
-INTERVAL=10
+INTERVAL=5
 
 # 检查参数
-if [ $# -lt 1 ] || [ $# -gt 2 ]; then
-    echo "Usage: $0 [-u] <config_file>"
-    echo "  -u: Unmount all mounted partitions and exit"
-    echo "  <config_file>: Path to config file with mount rules"
+if [ $# -gt 1 ]; then
+    echo "Usage: $0 [-u]"
+    echo "  -u: Unmount all predefined mount points and exit"
     exit 1
 fi
 
 # 解析参数
 UNMOUNT=0
-CONFIG_FILE=""
 if [ "$1" = "-u" ]; then
     UNMOUNT=1
-    CONFIG_FILE="$2"
-else
-    CONFIG_FILE="$1"
 fi
 
 # 检查 root 权限
-if [ "$EUID" -ne 0 ]; then
+if [ "`id -u`" -ne 0 ]; then
     echo "Error: This script must be run as root!"
     exit 1
 fi
 
-# 检查配置文件
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Error: Config file '$CONFIG_FILE' not found!"
-    exit 1
-fi
-
-# 读取配置文件
-declare -A MOUNT_RULES
-section_found=0
-while IFS='=' read -r key value; do
-    key=$(echo "$key" | xargs)
-    value=$(echo "$value" | xargs)
-    if [[ "$key" == "\[MOUNT_RULES\]" ]]; then
-        section_found=1
-        continue
-    elif [[ "$key" =~ ^\[.*\]$ ]]; then
-        section_found=0
-        continue
-    fi
-    if [ $section_found -eq 1 ] && [ -n "$key" ] && [ -n "$value" ]; then
-        MOUNT_RULES["$key"]="$value"
-        echo "Loaded rule: $key -> $value"
-    fi
-done < "$CONFIG_FILE"
-
-if [ ${#MOUNT_RULES[@]} -eq 0 ]; then
-    echo "Error: No mount rules found in $CONFIG_FILE!"
-    exit 1
-fi
+# 预定义挂载规则
+work_mnt="/mnt/norflash_work"
+image_info_mnt="/mnt/norflash_image_info"
+fram1_mnt="/mnt/fram1"
+fram2_mnt="/mnt/fram2"
+mmc1_mnt="/mnt/emmc1"
+mmc2_mnt="/mnt/emmc2"
 
 # 卸载逻辑
 if [ $UNMOUNT -eq 1 ]; then
-    for mtd_name in "${!MOUNT_RULES[@]}"; do
-        mount_point="${MOUNT_RULES[$mtd_name]}"
-        if mountpoint -q "$mount_point"; then
-            echo "Unmounting $mount_point..."
-            umount "$mount_point"
+    for mnt in "$work_mnt" "$image_info_mnt" "$fram1_mnt" "$fram2_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
+        if [ -n "$mnt" ] && mountpoint -q "$mnt"; then
+            echo "Unmounting $mnt..."
+            umount -l "$mnt" || umount "$mnt"
             if [ $? -eq 0 ]; then
-                echo "Successfully unmounted $mount_point"
+                echo "Successfully unmounted $mnt"
             else
-                echo "Error: Failed to unmount $mount_point!"
+                echo "Error: Failed to unmount $mnt!"
             fi
-        else
-            echo "Warning: $mount_point is not mounted"
+        elif [ -n "$mnt" ]; then
+            echo "Warning: $mnt is not mounted"
         fi
     done
     exit 0
@@ -96,45 +62,75 @@ fi
 
 # 函数：获取当前挂载状态
 get_mounted_mtds() {
-    local mounted_mtds=()
-    for mtd_name in "${!MOUNT_RULES[@]}"; do
-        mount_point="${MOUNT_RULES[$mtd_name]}"
-        if mountpoint -q "$mount_point"; then
-            mounted_mtds+=("$mtd_name")
+    local mounted_mtds=""
+    for mnt in "$work_mnt" "$image_info_mnt" "$fram1_mnt" "$fram2_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
+        if [ -n "$mnt" ] && mountpoint -q "$mnt"; then
+            case $mnt in
+                "$work_mnt") mounted_mtds="$mounted_mtds Work ";;
+                "$image_info_mnt") mounted_mtds="$mounted_mtds Image-Info ";;
+                "$fram1_mnt") mounted_mtds="$mounted_mtds fram1_108qn ";;
+                "$fram2_mnt") mounted_mtds="$mounted_mtds fram2_108qn ";;
+                "$mmc1_mnt") mounted_mtds="$mounted_mtds mmcblk0p1 ";;
+                "$mmc2_mnt") mounted_mtds="$mounted_mtds mmcblk0p2 ";;
+            esac
         fi
     done
-    echo "${mounted_mtds[@]}"
+    echo "$mounted_mtds"
 }
 
 # 主循环
-echo "Starting MTD mount loop with interval $INTERVAL seconds..."
+echo "Starting mount loop with interval $INTERVAL seconds..."
 while true; do
-    # 读取 /proc/mtd
-    declare -A MTD_DEVICES
-    while read -r dev size erasesize name; do
-        if [[ $name =~ ^\"([^\"]+)\"$ ]]; then
-            name_clean="${BASH_REMATCH[1]}"
-            mtd_num="${dev#mtd}"
-            MTD_DEVICES["$name_clean"]="/dev/mtdblock$mtd_num"
-            echo "Detected MTD: $name_clean -> /dev/mtdblock$mtd_num"
+    # 存储 MTD 设备路径
+    work_dev=""
+    image_info_dev=""
+    fram1_dev=""
+    fram2_dev=""
+    while read -r line; do
+        mtd_num=$(echo "$line" | awk -F: '{print $1}' | sed 's/mtd//')
+        name=$(echo "$line" | awk -F'"' '{print $2}')
+        if [ -n "$mtd_num" ] && [ -n "$name" ]; then
+            case $name in
+                Work)
+                    if [ -z "$work_dev" ]; then work_dev="/dev/mtdblock$mtd_num"; fi;;
+                Image-Info)
+                    if [ -z "$image_info_dev" ]; then image_info_dev="/dev/mtdblock$mtd_num"; fi;;
+                fram1_108qn)
+                    if [ -z "$fram1_dev" ]; then fram1_dev="/dev/mtdblock$mtd_num"; fi;;
+                fram2_108qn)
+                    if [ -z "$fram2_dev" ]; then fram2_dev="/dev/mtdblock$mtd_num"; fi;;
+            esac
+            echo "Detected MTD: $name -> ${work_dev:-${image_info_dev:-${fram1_dev:-${fram2_dev}}}}"
         fi
     done < /proc/mtd
 
-    # 获取当前挂载状态
-    mounted_mtds=($(get_mounted_mtds))
+    # 存储 eMMC 设备路径
+    mmc1_dev="/dev/mmcblk0p1"
+    mmc2_dev="/dev/mmcblk0p2"
 
-    # 遍历配置文件规则，检查并挂载
-    for mtd_name in "${!MOUNT_RULES[@]}"; do
-        mount_point="${MOUNT_RULES[$mtd_name]}"
-        mtd_dev="${MTD_DEVICES[$mtd_name]}"
+    # 获取当前挂载状态
+    mounted_mtds=$(get_mounted_mtds)
+
+    # 遍历预定义规则，检查并挂载
+    for mtd_name in Work Image-Info fram1_108qn fram2_108qn mmcblk0p1 mmcblk0p2; do
+        mount_point=""
+        mtd_dev=""
+        case $mtd_name in
+            Work) mount_point="$work_mnt"; mtd_dev="$work_dev"; fs_type="jffs2";;
+            Image-Info) mount_point="$image_info_mnt"; mtd_dev="$image_info_dev"; fs_type="jffs2";;
+            fram1_108qn) mount_point="$fram1_mnt"; mtd_dev="$fram1_dev"; fs_type="jffs2";;
+            fram2_108qn) mount_point="$fram2_mnt"; mtd_dev="$fram2_dev"; fs_type="jffs2";;
+            mmcblk0p1) mount_point="$mmc1_mnt"; mtd_dev="$mmc1_dev"; fs_type="ext4";;
+            mmcblk0p2) mount_point="$mmc2_mnt"; mtd_dev="$mmc2_dev"; fs_type="ext4";;
+        esac
 
         if [ -z "$mtd_dev" ]; then
-            echo "Warning: MTD partition '$mtd_name' not found in /proc/mtd!"
+            echo "Warning: Partition '$mtd_name' not found or device path invalid!"
             continue
         fi
 
         # 确保挂载点存在
-        if [ ! -d "$mount_point" ]; then
+        if [ -n "$mount_point" ] && [ ! -d "$mount_point" ]; then
             echo "Creating mount point: $mount_point"
             mkdir -p "$mount_point"
             if [ $? -ne 0 ]; then
@@ -144,9 +140,9 @@ while true; do
         fi
 
         # 检查是否已挂载
-        if ! [[ " ${mounted_mtds[*]} " =~ " ${mtd_name} " ]]; then
-            echo "Mounting $mtd_dev to $mount_point with jffs2 filesystem..."
-            mount -t jffs2 "$mtd_dev" "$mount_point"
+        if [ -n "$mount_point" ] && ! echo " $mounted_mtds " | grep -q " $mtd_name "; then
+            echo "Mounting $mtd_dev to $mount_point with $fs_type filesystem..."
+            mount -t "$fs_type" "$mtd_dev" "$mount_point"
             if [ $? -eq 0 ]; then
                 echo "Successfully mounted $mtd_dev to $mount_point"
                 ls -l "$mount_point"
@@ -155,8 +151,8 @@ while true; do
                 echo "Check dmesg for details:"
                 dmesg | tail -n 20
             fi
-        else
-            echo "MTD $mtd_name at $mount_point is already mounted"
+        elif [ -n "$mount_point" ]; then
+            echo "Partition $mtd_name at $mount_point is already mounted"
         fi
     done
 

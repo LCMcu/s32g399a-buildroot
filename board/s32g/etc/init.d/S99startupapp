@@ -1,11 +1,13 @@
 #!/bin/busybox sh
 
+INIT_SCRIPT="/usr/app/start_script/start.sh"
+
 run_script() {
     local script="$1"
     /bin/busybox sh "$script" &
 }
 
-main() {
+start() {
     local script_dir="${1:-/usr/app/start_script}"
 
     if [ ! -d "$script_dir" ]; then
@@ -23,4 +25,24 @@ main() {
     done
 }
 
-main
+# See how we were called.
+case "$1" in
+	start)
+		# start
+        run_script "$INIT_SCRIPT"
+		;;
+	stop)
+		# stop
+		;;
+	restart)
+		# stop
+		# start
+		;;
+	reload)
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+esac
+
+exit 0
