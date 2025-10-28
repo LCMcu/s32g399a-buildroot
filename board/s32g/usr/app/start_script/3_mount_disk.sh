@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/busybox sh
 
 # 脚本名称：auto_mount_mtd_loop.sh
 # 描述：持续循环检查 /proc/mtd 和 eMMC 分区，直接挂载预定义的 MTD 和 eMMC 分区到指定路径。
@@ -6,7 +6,6 @@
 #   -u: 卸载所有预定义的挂载点并退出
 # 预定义规则：
 #   MTD 分区: Work=/mnt/norflash_work, Image-Info=/mnt/norflash_image_info
-#   MTD 分区: fram1_108qn=/mnt/fram1, fram2_108qn=/mnt/fram2
 #   eMMC 分区: mmcblk0p1=/mnt/emmc1, mmcblk0p2=/mnt/emmc2
 # 依赖：mount、umount 命令，需 root 权限
 # 文件系统类型：MTD 默认 jffs2，eMMC 默认 ext4
@@ -29,7 +28,7 @@ if [ "$1" = "-u" ]; then
 fi
 
 # 检查 root 权限
-if [ "`id -u`" -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
     echo "Error: This script must be run as root!"
     exit 1
 fi
@@ -37,14 +36,12 @@ fi
 # 预定义挂载规则
 work_mnt="/mnt/norflash_work"
 image_info_mnt="/mnt/norflash_image_info"
-fram1_mnt="/mnt/fram1"
-fram2_mnt="/mnt/fram2"
 mmc1_mnt="/mnt/emmc1"
 mmc2_mnt="/mnt/emmc2"
 
 # 卸载逻辑
 if [ $UNMOUNT -eq 1 ]; then
-    for mnt in "$work_mnt" "$image_info_mnt" "$fram1_mnt" "$fram2_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
+    for mnt in "$work_mnt" "$image_info_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
         if [ -n "$mnt" ] && mountpoint -q "$mnt"; then
             echo "Unmounting $mnt..."
             umount -l "$mnt" || umount "$mnt"
@@ -63,13 +60,11 @@ fi
 # 函数：获取当前挂载状态
 get_mounted_mtds() {
     local mounted_mtds=""
-    for mnt in "$work_mnt" "$image_info_mnt" "$fram1_mnt" "$fram2_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
+    for mnt in "$work_mnt" "$image_info_mnt" "$mmc1_mnt" "$mmc2_mnt"; do
         if [ -n "$mnt" ] && mountpoint -q "$mnt"; then
             case $mnt in
                 "$work_mnt") mounted_mtds="$mounted_mtds Work ";;
                 "$image_info_mnt") mounted_mtds="$mounted_mtds Image-Info ";;
-                "$fram1_mnt") mounted_mtds="$mounted_mtds fram1_108qn ";;
-                "$fram2_mnt") mounted_mtds="$mounted_mtds fram2_108qn ";;
                 "$mmc1_mnt") mounted_mtds="$mounted_mtds mmcblk0p1 ";;
                 "$mmc2_mnt") mounted_mtds="$mounted_mtds mmcblk0p2 ";;
             esac
@@ -81,26 +76,29 @@ get_mounted_mtds() {
 # 主循环
 echo "Starting mount loop with interval $INTERVAL seconds..."
 while true; do
-    # 存储 MTD 设备路径
+    # 初始化 MTD 设备路径变量
     work_dev=""
     image_info_dev=""
-    fram1_dev=""
-    fram2_dev=""
+
+    # 读取 /proc/mtd 并分配设备路径
+    mtd_num=0
     while read -r line; do
-        mtd_num=$(echo "$line" | awk -F: '{print $1}' | sed 's/mtd//')
         name=$(echo "$line" | awk -F'"' '{print $2}')
-        if [ -n "$mtd_num" ] && [ -n "$name" ]; then
+        if [ -n "$name" ]; then
             case $name in
                 Work)
-                    if [ -z "$work_dev" ]; then work_dev="/dev/mtdblock$mtd_num"; fi;;
+                    work_dev="/dev/mtdblock$mtd_num"
+                    echo "Detected MTD: $name -> $work_dev"
+                    ;;
                 Image-Info)
-                    if [ -z "$image_info_dev" ]; then image_info_dev="/dev/mtdblock$mtd_num"; fi;;
-                fram1_108qn)
-                    if [ -z "$fram1_dev" ]; then fram1_dev="/dev/mtdblock$mtd_num"; fi;;
-                fram2_108qn)
-                    if [ -z "$fram2_dev" ]; then fram2_dev="/dev/mtdblock$mtd_num"; fi;;
+                    image_info_dev="/dev/mtdblock$mtd_num"
+                    echo "Detected MTD: $name -> $image_info_dev"
+                    ;;
+                *)
+                    echo "Detected MTD: $name -> /dev/mtdblock$mtd_num"
+                    ;;
             esac
-            echo "Detected MTD: $name -> ${work_dev:-${image_info_dev:-${fram1_dev:-${fram2_dev}}}}"
+            mtd_num=$((mtd_num + 1))
         fi
     done < /proc/mtd
 
@@ -112,14 +110,12 @@ while true; do
     mounted_mtds=$(get_mounted_mtds)
 
     # 遍历预定义规则，检查并挂载
-    for mtd_name in Work Image-Info fram1_108qn fram2_108qn mmcblk0p1 mmcblk0p2; do
+    for mtd_name in Work Image-Info mmcblk0p1 mmcblk0p2; do
         mount_point=""
         mtd_dev=""
         case $mtd_name in
             Work) mount_point="$work_mnt"; mtd_dev="$work_dev"; fs_type="jffs2";;
             Image-Info) mount_point="$image_info_mnt"; mtd_dev="$image_info_dev"; fs_type="jffs2";;
-            fram1_108qn) mount_point="$fram1_mnt"; mtd_dev="$fram1_dev"; fs_type="jffs2";;
-            fram2_108qn) mount_point="$fram2_mnt"; mtd_dev="$fram2_dev"; fs_type="jffs2";;
             mmcblk0p1) mount_point="$mmc1_mnt"; mtd_dev="$mmc1_dev"; fs_type="ext4";;
             mmcblk0p2) mount_point="$mmc2_mnt"; mtd_dev="$mmc2_dev"; fs_type="ext4";;
         esac
@@ -155,7 +151,7 @@ while true; do
             echo "Partition $mtd_name at $mount_point is already mounted"
         fi
     done
-
+    exit 0
     # 等待下一次检查
     echo "Waiting $INTERVAL seconds for next check..."
     sleep $INTERVAL

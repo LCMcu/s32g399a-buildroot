@@ -47,6 +47,9 @@ fi
 # echo "GSSAPIAuthentication no" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/sshd_config
 mkdir -p /var/empty/
 
+#替换chrony 配置文件，当前配置为使用lc ubuntu 虚拟机作为时间服务器
+sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/chrony/chrony.conf /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/chrony.conf
+
 #5.放置驱动
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/modules /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/

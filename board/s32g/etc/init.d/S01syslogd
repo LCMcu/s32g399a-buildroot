@@ -1,0 +1,113 @@
+#!/bin/sh
+
+DAEMON="syslogd"
+PIDFILE="/var/run/$DAEMON.pid"
+
+# -------------------------------
+# 默认参数（可被环境变量覆盖）
+# -------------------------------
+LOG_FILE="/var/log/messages"
+ROTATED_PATTERN="messages.[0-9]*"
+CLEANUP_LOG="/var/log/cleanup.log"
+
+# BusyBox syslogd 内置轮转
+SYSLOGD_SIZE_KB=1024  # 每个日志最大 1MB
+SYSLOGD_B=7           # 保留最近 7 个轮转日志
+MAX_DAYS=30           # 默认保留30天
+CLEANUP_INTERVAL=600  # 默认10分钟
+
+# 可通过环境变量覆盖
+[ -n "$SYSLOGD_FILE" ] && LOG_FILE="$SYSLOGD_FILE"
+[ -n "$SYSLOGD_SIZE" ] && SYSLOGD_SIZE_KB="$SYSLOGD_SIZE"
+[ -n "$SYSLOGD_B_PARAM" ] && SYSLOGD_B="$SYSLOGD_B_PARAM"
+[ -n "$MAX_LOG_DAYS" ] && MAX_DAYS="$MAX_LOG_DAYS"
+[ -n "$CLEANUP_INTERVAL_SEC" ] && CLEANUP_INTERVAL="$CLEANUP_INTERVAL_SEC"
+
+SYSLOGD_ARGS="-O $LOG_FILE -s $SYSLOGD_SIZE_KB -b $SYSLOGD_B"
+
+# -------------------------------
+# 后台日志清理函数
+# -------------------------------
+cleanup_loop() {
+    while true; do
+        ROTATED_LOGS=$(ls -1tr "$LOG_FILE".* 2>/dev/null)
+        COUNT=0
+        for f in $ROTATED_LOGS; do
+            COUNT=$((COUNT+1))
+            FILE_AGE=$(($(date +%s) - $(stat -c %Y "$f")))
+            MAX_AGE=$((MAX_DAYS*86400))
+            if [ "$COUNT" -gt "$SYSLOGD_B" ] || [ "$FILE_AGE" -gt "$MAX_AGE" ]; then
+                rm -f "$f"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') Deleted rotated log: $f" >> "$CLEANUP_LOG"
+            fi
+        done
+        sleep "$CLEANUP_INTERVAL"
+    done &
+}
+
+# -------------------------------
+# 启动函数
+# -------------------------------
+start() {
+    printf 'Starting %s: ' "$DAEMON"
+
+    start-stop-daemon --start --background --make-pidfile \
+        --pidfile "$PIDFILE" --exec "/sbin/$DAEMON" \
+        -- -n $SYSLOGD_ARGS
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        return "$status"
+    fi
+
+    cleanup_loop
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Started log cleanup process" >> "$CLEANUP_LOG"
+}
+
+# -------------------------------
+# 停止函数
+# -------------------------------
+stop() {
+    printf 'Stopping %s: ' "$DAEMON"
+    start-stop-daemon --stop --pidfile "$PIDFILE" --exec "/sbin/$DAEMON"
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        return "$status"
+    fi
+    while start-stop-daemon --stop --test --quiet --pidfile "$PIDFILE" \
+            --exec "/sbin/$DAEMON"; do
+        sleep 0.1
+    done
+    rm -f "$PIDFILE"
+    echo "Stopped log cleanup process" >> "$CLEANUP_LOG"
+    return "$status"
+}
+
+restart() {
+    stop
+    start
+}
+
+# -------------------------------
+# 命令行接口
+# -------------------------------
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        echo "可通过环境变量覆盖参数:"
+        echo "  SYSLOGD_FILE=/var/log/messages"
+        echo "  SYSLOGD_SIZE=1024"
+        echo "  SYSLOGD_B_PARAM=7"
+        echo "  MAX_LOG_DAYS=30"
+        echo "  CLEANUP_INTERVAL_SEC=600"
+        exit 1;;
+esac

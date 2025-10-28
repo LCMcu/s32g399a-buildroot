@@ -1,6 +1,6 @@
 #!/bin/busybox sh
 
-INIT_SCRIPT="/usr/app/start_script/start.sh"
+INIT_SCRIPT="/usr/app/start_script/0_start.sh"
 
 run_script() {
     local script="$1"
