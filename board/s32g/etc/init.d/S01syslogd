@@ -12,8 +12,8 @@ CLEANUP_LOG="/var/log/cleanup.log"
 
 # BusyBox syslogd 内置轮转
 SYSLOGD_SIZE_KB=1024  # 每个日志最大 1MB
-SYSLOGD_B=7           # 保留最近 7 个轮转日志
-MAX_DAYS=30           # 默认保留30天
+SYSLOGD_B=5           # 保留最近 5 个轮转日志
+MAX_DAYS=2           # 默认保留2天
 CLEANUP_INTERVAL=600  # 默认10分钟
 
 # 可通过环境变量覆盖

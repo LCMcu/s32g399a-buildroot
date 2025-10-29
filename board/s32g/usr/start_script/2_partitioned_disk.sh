@@ -34,50 +34,67 @@ if [ -z "$HALF_SECTORS" ] || [ "$HALF_SECTORS" -le 0 ]; then
   exit 1
 fi
 
-# 检查现有分区
-echo "检查现有分区..."
-PART_INFO=$(fdisk -l $DEVICE 2>/dev/null)
-PART_COUNT=$(echo "$PART_INFO" | grep -c "^${DEVICE}p[0-9]")
+# 定义检查一致性的次数
+CHECK_COUNT=3
+CHECK_SUCCESS_COUNT=0
 
-if [ "$PART_COUNT" -eq 2 ]; then
-  PART1_INFO=$(echo "$PART_INFO" | grep "^${DEVICE}p1" | head -n 1)
-  PART2_INFO=$(echo "$PART_INFO" | grep "^${DEVICE}p2" | head -n 1)
+# 检查现有分区，最多检查 3 次
+while [ $CHECK_SUCCESS_COUNT -lt $CHECK_COUNT ]; do
+  echo "检查现有分区，尝试第 $((CHECK_SUCCESS_COUNT + 1)) 次..."
+  PART_INFO=$(fdisk -l $DEVICE 2>/dev/null)
+  PART_COUNT=$(echo "$PART_INFO" | grep -c "^${DEVICE}p[0-9]")
 
-  PART1_START=$(echo $PART1_INFO | awk '{print $2}')
-  PART1_END=$(echo $PART1_INFO | awk '{print $3}')
-  if [ -n "$PART1_START" ] && [ -n "$PART1_END" ] && [ "$PART1_START" -le "$PART1_END" ] 2>/dev/null; then
-    PART1_SECTORS=$((PART1_END - PART1_START + 1))
+  if [ "$PART_COUNT" -eq 2 ]; then
+    PART1_INFO=$(echo "$PART_INFO" | grep "^${DEVICE}p1" | head -n 1)
+    PART2_INFO=$(echo "$PART_INFO" | grep "^${DEVICE}p2" | head -n 1)
+
+    PART1_START=$(echo $PART1_INFO | awk '{print $2}')
+    PART1_END=$(echo $PART1_INFO | awk '{print $3}')
+    if [ -n "$PART1_START" ] && [ -n "$PART1_END" ] && [ "$PART1_START" -le "$PART1_END" ] 2>/dev/null; then
+      PART1_SECTORS=$((PART1_END - PART1_START + 1))
+    else
+      PART1_SECTORS=0
+      echo "调试：p1 解析失败，START=$PART1_START, END=$PART1_END"
+    fi
+
+    PART2_START=$(echo $PART2_INFO | awk '{print $2}')
+    PART2_END=$(echo $PART2_INFO | awk '{print $3}')
+    if [ -n "$PART2_START" ] && [ -n "$PART2_END" ] && [ "$PART2_START" -le "$PART2_END" ] 2>/dev/null; then
+      PART2_SECTORS=$((PART2_END - PART2_START + 1))
+    else
+      PART2_SECTORS=0
+      echo "调试：p2 解析失败，START=$PART2_START, END=$PART2_END"
+    fi
+
+    echo "检测到分区："
+    echo "  p1: 起始 $PART1_START，结束 $PART1_END，扇区数 $PART1_SECTORS"
+    echo "  p2: 起始 $PART2_START，结束 $PART2_END，扇区数 $PART2_SECTORS"
+
+    # 允许 ±5000 扇区的误差
+    if [ "$PART1_SECTORS" -ge $((HALF_SECTORS - 5000)) ] && [ "$PART1_SECTORS" -le $((HALF_SECTORS + 5000)) ] && \
+       [ "$PART2_SECTORS" -ge $((HALF_SECTORS - 5000)) ] && [ "$PART2_SECTORS" -le $((HALF_SECTORS + 5000)) ]; then
+      echo "检测到两个等大分区（大小约 $((HALF_SECTORS * 512 / 1024 / 1024 / 1024)) GiB），无需重新分区"
+      echo "当前分区表："
+      fdisk -l $DEVICE
+      exit 0
+    else
+      echo "现有分区大小不匹配预期 ($HALF_SECTORS 扇区)，将重新分区"
+      CHECK_SUCCESS_COUNT=$((CHECK_SUCCESS_COUNT + 1))
+    fi
   else
-    PART1_SECTORS=0
-    echo "调试：p1 解析失败，START=$PART1_START, END=$PART1_END"
+    echo "未检测到两个分区，将重新分区"
+    CHECK_SUCCESS_COUNT=$((CHECK_SUCCESS_COUNT + 1))
   fi
 
-  PART2_START=$(echo $PART2_INFO | awk '{print $2}')
-  PART2_END=$(echo $PART2_INFO | awk '{print $3}')
-  if [ -n "$PART2_START" ] && [ -n "$PART2_END" ] && [ "$PART2_START" -le "$PART2_END" ] 2>/dev/null; then
-    PART2_SECTORS=$((PART2_END - PART2_START + 1))
-  else
-    PART2_SECTORS=0
-    echo "调试：p2 解析失败，START=$PART2_START, END=$PART2_END"
+  # 如果3次结果相同，都不一致，执行格式化
+  if [ $CHECK_SUCCESS_COUNT -ge $CHECK_COUNT ]; then
+    echo "三次检测结果不一致，将执行重新分区"
+    break
   fi
 
-  echo "检测到分区："
-  echo "  p1: 起始 $PART1_START，结束 $PART1_END，扇区数 $PART1_SECTORS"
-  echo "  p2: 起始 $PART2_START，结束 $PART2_END，扇区数 $PART2_SECTORS"
-
-  # 允许 ±5000 扇区的误差
-  if [ "$PART1_SECTORS" -ge $((HALF_SECTORS - 5000)) ] && [ "$PART1_SECTORS" -le $((HALF_SECTORS + 5000)) ] && \
-     [ "$PART2_SECTORS" -ge $((HALF_SECTORS - 5000)) ] && [ "$PART2_SECTORS" -le $((HALF_SECTORS + 5000)) ]; then
-    echo "检测到两个等大分区（大小约 $((HALF_SECTORS * 512 / 1024 / 1024 / 1024)) GiB），无需重新分区"
-    echo "当前分区表："
-    fdisk -l $DEVICE
-    exit 0
-  else
-    echo "现有分区大小不匹配预期 ($HALF_SECTORS 扇区)，将重新分区"
-  fi
-else
-  echo "未检测到两个分区，将重新分区"
-fi
+  # 等待1秒后重新检查
+  sleep 1
+done
 
 # 计算分区结束扇区
 START_SECTOR=2048

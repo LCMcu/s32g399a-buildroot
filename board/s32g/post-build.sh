@@ -21,14 +21,14 @@ fi
 #     echo "mtdblock[0-10]* 0:0 660" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/mdev.conf 
 # fi
 
-sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_primary
-sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc_backup
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc1
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/emmc2
 
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_work
 sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/norflash_image_info
 
-sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/fram1
-sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/fram2
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/mram1
+sudo mkdir -p /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/mnt/mram2
 
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/fstab   /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/fstab 
 
@@ -49,6 +49,8 @@ mkdir -p /var/empty/
 
 #替换chrony 配置文件，当前配置为使用lc ubuntu 虚拟机作为时间服务器
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/chrony/chrony.conf /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/chrony.conf
+#替换S01syslogd脚本，修改日志轮转参数
+sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/init.d/S01syslogd /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/init.d/S01syslogd
 
 #5.放置驱动
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/modules /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/lib/
@@ -57,7 +59,9 @@ sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /
 #6.放置测试工具
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/bin/*  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/bin/
 
-#7.放置应用app
-chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/*.sh
+#7.放置应用启动脚本、app
+chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/* -R
+chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/start_script/* -R
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/init.d/S99startupapp  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/init.d/
+sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/start_script/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
