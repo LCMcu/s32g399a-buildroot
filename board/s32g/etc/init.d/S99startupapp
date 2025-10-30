@@ -1,6 +1,14 @@
 #!/bin/busybox sh
 
+LOG_TAG=$(basename "$0")
+# 使用当前终端，如果没有可写终端则退回 /dev/console
+TERM_DEV="/dev/tty"
+[ ! -w "$TERM_DEV" ] && TERM_DEV="/dev/console"
+# 全局重定向 stdout 和 stderr
+exec > >(tee -a "$TERM_DEV" | logger -t "$LOG_TAG") 2>&1
+
 INIT_SCRIPT="/usr/start_script/0_start.sh"
+DEINIT_SCRIPT="/usr/start_script/0_stop.sh"
 
 run_script() {
     local script="$1"
@@ -29,10 +37,13 @@ start() {
 case "$1" in
 	start)
 		# start
+		echo "[INFO] Starting run 0_start.sh..."
         run_script "$INIT_SCRIPT"
 		;;
 	stop)
 		# stop
+		echo "[INFO] Stopping run 0_stop.sh..."
+		run_script "$DEINIT_SCRIPT"
 		;;
 	restart)
 		# stop

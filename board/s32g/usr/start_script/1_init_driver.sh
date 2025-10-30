@@ -1,5 +1,15 @@
 #!/bin/busybox sh
 
+LOG_TAG=$(basename "$0")
+
+# 使用当前终端，如果没有可写终端则退回 /dev/console
+TERM_DEV="/dev/tty"
+[ ! -w "$TERM_DEV" ] && TERM_DEV="/dev/console"
+
+# 全局重定向 stdout 和 stderr
+exec > >(tee -a "$TERM_DEV" | logger -t "$LOG_TAG") 2>&1
+
+echo "$(date) [INFO] Starting driver initialization script..."
 #######################################公用配置##################################################
 
 #######################################挂载驱动##################################################
@@ -66,22 +76,12 @@ fi
 VALUE=$(echo "$VALUE" | tr -d ' \n\t')
 case "$VALUE" in
     0)
-        echo "**************************** This is Standby devices *******************************"
-        echo "**************************** This is Standby devices *******************************"
-        echo "**************************** This is Standby devices *******************************"
-        echo "**************************** This is Standby devices *******************************"
-        echo "**************************** This is Standby devices *******************************"
-        echo "**************************** This is Standby devices *******************************"
+        echo "**************************** This is B devices *******************************"
         echo "File $FILE_PATH has value 0, setting MACHINE=MACHINE_B"
         export MACHINE=MACHINE_B
         ;;
     1)
-        echo "############################ This is Master devices ###############################"
-        echo "############################ This is Master devices ###############################"
-        echo "############################ This is Master devices ###############################"
-        echo "############################ This is Master devices ###############################"
-        echo "############################ This is Master devices ###############################"
-        echo "############################ This is Master devices ###############################"
+        echo "############################ This is A devices ###############################"
         echo "File $FILE_PATH has value 1, setting MACHINE=MACHINE_A"
         export MACHINE=MACHINE_A
         ;;
@@ -95,7 +95,7 @@ if [ "$MACHINE" = "$MACHINE_A" ]; then
     echo "Executing Operation A for $MACHINE"
 
     ################修改hostname##################
-    hostname zhdz-m
+    hostname zhdz-a
     sleep 1
 
     ################配置网络##################
@@ -117,7 +117,7 @@ fi
 if [ "$MACHINE" = "$MACHINE_B" ]; then
     echo "Executing Operation B for $MACHINE"
     ################修改hostname##################
-    hostname zhdz-s
+    hostname zhdz-b
     sleep 1
 
     ################配置网络##################
