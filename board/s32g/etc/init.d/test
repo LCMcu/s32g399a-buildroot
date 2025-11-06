@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mkdir -p /backup/logs
+while inotifywait -e modify /var/log/messages; do
+    cp /var/log/messages /backup/logs/messages.bak
+done
+
+#!/bin/sh
+mkdir -p /backup/logs
+tail -F /var/log/messages >> /backup/logs/messages.bak &
