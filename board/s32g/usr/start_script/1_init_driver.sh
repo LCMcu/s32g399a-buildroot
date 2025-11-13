@@ -13,10 +13,10 @@ echo "$(date) [INFO] Starting driver initialization script..."
 #######################################公用配置##################################################
 
 #######################################挂载驱动##################################################
-insmod /lib/modules/6.6.52-rt43-1.0+/kernel/drivers/net/ethernet/nxp/pfe/pfeng.ko
-insmod /lib/modules/6.6.52-rt43-1.0+/kernel/drivers/mailbox/llce-mailbox.ko
-insmod /lib/modules/6.6.52-rt43-1.0+/kernel/drivers/mfd/llce-core.ko
-insmod /lib/modules/6.6.52-rt43-1.0+/kernel/drivers/net/can/llce/llce_can.ko
+insmod /lib/modules/6.6.52-rt43-1.0/kernel/drivers/net/ethernet/nxp/pfe/pfeng.ko
+insmod /lib/modules/6.6.52-rt43-1.0/kernel/drivers/mailbox/llce-mailbox.ko
+insmod /lib/modules/6.6.52-rt43-1.0/kernel/drivers/mfd/llce-core.ko
+insmod /lib/modules/6.6.52-rt43-1.0/kernel/drivers/net/can/llce/llce_can.ko
 
 # #######################################配置外部输入GPIO###########################################
 # #外部输入GPIO C15 PJ_04

@@ -34,13 +34,13 @@ sleep 0.5
 
 if [ -e /mnt/emmc1/x_start_cfs.sh ]; then
     echo "[INFO] 启动 /mnt/emmc1/x_start_cfs.sh"
-    /mnt/emmc1/x_start_cfs.sh &
+    /mnt/emmc1/x_start_cfs.sh
 elif [ -e /mnt/emmc2/x_start_cfs.sh ]; then
     echo "[INFO] 启动 /mnt/emmc2/x_start_cfs.sh"
-    /mnt/emmc2/x_start_cfs.sh &
+    /mnt/emmc2/x_start_cfs.sh
 elif [ -e /mnt/norflash_work/x_start_cfs.sh ]; then
     echo "[INFO] 启动 /mnt/norflash_work/x_start_cfs.sh"
-    /mnt/norflash_work/x_start_cfs.sh &
+    /mnt/norflash_work/x_start_cfs.sh
 else
     echo "[ERROR] /mnt/emmc1/x_start_cfs.sh /mnt/emmc2/x_start_cfs.sh /mnt/norflash_work/x_start_cfs.sh do not exist, no application started!!!"
 fi
