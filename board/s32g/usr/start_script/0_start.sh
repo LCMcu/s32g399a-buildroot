@@ -21,9 +21,9 @@ echo "############################## 3.messages备份...########################
 /usr/start_script/3_messages_back.sh
 sleep 0.5
 
-# echo "############################## 2.检测emmc分区情况...###############################"
-# /usr/start_script/2_init_driver.sh
-# sleep 0.5
+# echo "############################## 4.检测emmc分区情况...###############################"
+/usr/start_script/4_system_monitoring.sh &
+sleep 0.5
 
 # echo "############################## 5.存储分区循环检测...###############################"
 # /usr/start_script/5_mount_disk.sh

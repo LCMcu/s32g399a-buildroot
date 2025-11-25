@@ -45,7 +45,15 @@ else
 fi
 #
 # echo "GSSAPIAuthentication no" >> /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/sshd_config
-mkdir -p /var/empty/
+sudo mkdir -p /var/empty/
+
+#放置ssh配置文件
+#如果ssh_host_ecdsa_key.pub不存在，则复制该目录
+# if [ ! -f "/home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/ssh/ssh_host_ecdsa_key.pub" ]; then
+#     sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/ssh /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/
+# else    
+#     echo "ssh目录已存在，跳过复制"
+# fi
 
 #替换chrony 配置文件，当前配置为使用lc ubuntu 虚拟机作为时间服务器
 sudo cp -r /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/chrony/chrony.conf /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/chrony.conf
@@ -60,8 +68,10 @@ sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/firmware /
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/bin/*  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/bin/
 
 #7.放置应用启动脚本、app
-chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/* -R
-chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/start_script/* -R
+sudo chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/* -R
+sudo chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/start_script/* -R
+sudo chmod 777 /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/tool_script/* -R
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/etc/init.d/S99startupapp  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/etc/init.d/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/start_script/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
+sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/tool_script/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
 sudo cp -r  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/board/s32g/usr/app/  /home/lc/work/s32g/s32g399a/s32g399a-buildroot/output/target/usr/
