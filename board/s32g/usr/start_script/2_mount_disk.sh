@@ -124,8 +124,8 @@ while true; do
         mount_point=""
         mtd_dev=""
         case $mtd_name in
-            Work) mount_point="$work_mnt"; mtd_dev="$work_dev"; fs_type="jffs2";;
-            Image-Info) mount_point="$image_info_mnt"; mtd_dev="$image_info_dev"; fs_type="jffs2";;
+            Work) mount_point="$work_mnt"; mtd_dev="$work_dev"; fs_type="squashfs";;
+            Image-Info) mount_point="$image_info_mnt"; mtd_dev="$image_info_dev"; fs_type="squashfs";;
             mmcblk0p1) mount_point="$mmc1_mnt"; mtd_dev="$mmc1_dev"; fs_type="ext4";;
             mmcblk0p2) mount_point="$mmc2_mnt"; mtd_dev="$mmc2_dev"; fs_type="ext4";;
         esac

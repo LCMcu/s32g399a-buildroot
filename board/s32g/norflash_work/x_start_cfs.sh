@@ -8,9 +8,8 @@ echo "当前目录：$(pwd)"
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/
 export PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin:/bin:
 
-# log_file="/mnt/mram/start.log"
-part="/mnt/norflash_work/"
-log_file="/mnt/norflash_work/start.log"
+part="/mnt/norflash_work_ramdisk/"
+log_file="/mnt/mram/start.log"
 cfg_file="/mnt/mram/start.cfg"
 cnt_file="/mnt/mram/boot.cnt"
 exe_file="core-s32g3-linux"
@@ -29,20 +28,20 @@ gw_config="add default gw 192.168.0.1"
 #TODO 接管FPGA的喂狗
 #gpioset 0 20=0
 
-chmod 777 /mnt/norflash_work/* -R
 chmod 777 /mnt/mram/* -R
 
-cp /mnt/norflash_work/cfs/core-s32g3-linux /mnt/norflash_work/$exe_file
-cp /mnt/norflash_work/cfs/cf/*.so /mnt/norflash_work/cf/
-ln -snf /mnt/norflash_work/cfs/cf/*.tbl /mnt/norflash_work/cf/
-ln -snf /mnt/norflash_work/cfs/cf/*.scr /mnt/norflash_work/cf/
-ln -snf /mnt/norflash_work/cfs/cf/*.cfg /mnt/norflash_work/cf/
+mkdir -p /mnt/norflash_work_ramdisk/cf
+cp /mnt/norflash_work/cfs/core-s32g3-linux /mnt/norflash_work_ramdisk/$exe_file
+cp /mnt/norflash_work/cfs/cf/*.so /mnt/norflash_work_ramdisk/cf/
+ln -snf /mnt/norflash_work/cfs/cf/*.tbl /mnt/norflash_work_ramdisk/cf/
+ln -snf /mnt/norflash_work/cfs/cf/*.scr /mnt/norflash_work_ramdisk/cf/
+ln -snf /mnt/norflash_work/cfs/cf/*.cfg /mnt/norflash_work_ramdisk/cf/
 
-chmod 777 /mnt/norflash_work/* -R
+chmod 777 /mnt/norflash_work_ramdisk/* -R
 chmod 777 /mnt/mram/* -R
 
 #通过mram中的配置文件获取默认盘符
-echo "$(date "+%Y-%m-%d %H:%M:%S") : default part=norflash_work.">>$log_file
+echo "$(date "+%Y-%m-%d %H:%M:%S") : default part=norflash_work_ramdisk.">>$log_file
 
 #备份mram中dmesg日志
 cp /mnt/mram/dmesg.log /mnt/mram/dmesg-bak.log

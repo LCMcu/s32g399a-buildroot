@@ -8,8 +8,7 @@ echo "当前目录：$(pwd)"
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/
 export PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin:/bin:
 
-# log_file="/mnt/mram/start.log"
-log_file="/mnt/norflash_work/start.log"
+log_file="/mnt/mram/start.log"
 cfg_file="/mnt/mram/start.cfg"
 cnt_file="/mnt/mram/boot.cnt"
 exe_file="core-s32g3-linux"
