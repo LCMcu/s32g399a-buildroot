@@ -7,6 +7,29 @@ TERM_DEV="/dev/tty"
 # 全局重定向 stdout 和 stderr
 exec > >(tee -a "$TERM_DEV" | logger -t "$LOG_TAG") 2>&1
 
+# # stdout -> tee -> logz & terminal
+# exec 1> >(tee >(while read line; do logz my_cat INFO "$line"; done))
+
+# # stderr -> tee -> logz & terminal
+# exec 2> >(tee >(while read line; do logz my_cat ERROR "$line"; done) >&2)
+
+# # 测试
+# echo "This is stdout"
+# echo "This is stderr" >&2
+# ls /nonexistent
+
+
+# if [ -f /etc/zlog.conf ]; then
+# #    
+#     if pgrep zlogd >/dev/null; then
+#         echo "[INFO] zlogd is already running."
+#     else
+#         echo "[INFO] Starting zlogd with config /etc/zlog.conf"
+#         zlogd /etc/zlog.conf
+#         sleep 0.5
+#     fi
+# fi
+
 echo "############################## 0.第一启动脚本...###############################"
 
 echo "############################## 1.挂载驱动，初始化硬件接口...###############################"
